@@ -66,6 +66,61 @@
       localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
+    function showSubtaskModal(taskIdx, tasks, render) {
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'modal-content';
+      modalContent.innerHTML = `
+        <h3>Unteraufgabe hinzufügen</h3>
+        <input type="text" id="modalSubtaskText" placeholder="Unteraufgabe" />
+        <input type="date" id="modalSubStart" />
+        <input type="date" id="modalSubEnd" />
+        <div class="modal-actions">
+          <button id="modalAddBtn">Hinzufügen</button>
+          <button id="modalCancelBtn">Abbrechen</button>
+        </div>
+      `;
+      
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+      
+      const textInput = document.getElementById('modalSubtaskText');
+      const startInput = document.getElementById('modalSubStart');
+      const endInput = document.getElementById('modalSubEnd');
+      const addBtn = document.getElementById('modalAddBtn');
+      const cancelBtn = document.getElementById('modalCancelBtn');
+      
+      function closeModal() {
+        modal.remove();
+      }
+      
+      addBtn.addEventListener('click', () => {
+        const text = textInput.value.trim();
+        if(!text) return;
+        
+        if(!Array.isArray(tasks[taskIdx].subtasks)) {
+          tasks[taskIdx].subtasks = [];
+        }
+        
+        tasks[taskIdx].subtasks.push({
+          text: text,
+          done: false,
+          startDate: startInput.value || null,
+          endDate: endInput.value || null
+        });
+        
+        saveTasks(tasks);
+        closeModal();
+        render();
+      });
+      
+      cancelBtn.addEventListener('click', closeModal);
+      textInput.focus();
+    }
+
     function render(){
       const tasks = loadTasks();
       list.innerHTML = '';
@@ -102,7 +157,7 @@
         meta.className = 'meta';
         const start = t.startDate ? new Date(t.startDate).toLocaleDateString() : '-';
         const end = t.endDate ? new Date(t.endDate).toLocaleDateString() : '-';
-        meta.textContent = `${t.subject} • ${start} → ${end}`;
+        meta.textContent = `${start} → ${end}`;
 
         content.appendChild(title);
         content.appendChild(meta);
@@ -145,6 +200,13 @@
 
         const actions = document.createElement('div');
         actions.className = 'actions';
+        
+        const addSubBtn = document.createElement('button');
+        addSubBtn.textContent = '+ Unteraufgabe';
+        addSubBtn.addEventListener('click', () => {
+          showSubtaskModal(idx, tasks, render);
+        });
+        
         const del = document.createElement('button');
         del.textContent = 'Löschen';
         del.addEventListener('click', () => {
@@ -152,6 +214,7 @@
           saveTasks(tasks);
           render();
         });
+        actions.appendChild(addSubBtn);
         actions.appendChild(del);
 
         li.appendChild(left);
