@@ -4,34 +4,47 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ToDo Liste</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; max-width:700px; margin:40px auto; padding:0 16px; }
-    h1 { text-align:center; }
-    .new-task { display:flex; gap:8px; margin-bottom:16px; }
-    input[type="text"] { flex:1; padding:8px; font-size:16px; }
-    button { padding:8px 12px; font-size:16px; }
-    ul { list-style:none; padding:0; }
-    li { display:flex; align-items:center; gap:8px; padding:8px; border:1px solid #eee; margin-bottom:8px; border-radius:4px; }
-    li.completed span.text { text-decoration:line-through; color:#777; }
-    .text { flex:1; }
-    .meta { font-size:13px; color:#666; }
-    .count { margin-top:12px; color:#333; }
-  </style>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <h1>Aufgabenliste Uni</h1>
-  <div class="new-task">
-    <input id="taskInput" type="text" placeholder="Neue Aufgabe eingeben und Enter drücken" aria-label="Neue Aufgabe" />
+  <form id="newTaskForm" class="new-task" onsubmit="return false;">
+    <input id="taskInput" type="text" placeholder="Neue Aufgabe (Titel)" aria-label="Neue Aufgabe" required />
+    <select id="subjectSelect" aria-label="Unifach">
+      <option value="sonstiges">Sonstiges</option>
+      <option value="mathe">Mathe</option>
+      <option value="info">Informatik</option>
+      <option value="physik">Physik</option>
+      <option value="englisch">Englisch</option>
+    </select>
+    <input id="startDate" type="date" aria-label="Startdatum" />
+    <input id="endDate" type="date" aria-label="Enddatum" />
     <button id="addBtn">Hinzufügen</button>
+  </form>
+  <div class="subtask-creator">
+    <input id="subtaskInput" type="text" placeholder="Unteraufgabe (optional)" />
+    <input id="subStart" type="date" />
+    <input id="subEnd" type="date" />
+    <button id="addSubBtn">Unteraufgabe hinzufügen</button>
+    <ul id="pendingSubtasks" class="pending-subtasks"></ul>
   </div>
   <ul id="taskList" aria-live="polite"></ul>
   <div class="count"><span id="remaining">0</span> Aufgaben übrig</div>
 
   <script>
     const input = document.getElementById('taskInput');
+    const subjectSelect = document.getElementById('subjectSelect');
     const addBtn = document.getElementById('addBtn');
     const list = document.getElementById('taskList');
     const remaining = document.getElementById('remaining');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const subtaskInput = document.getElementById('subtaskInput');
+    const addSubBtn = document.getElementById('addSubBtn');
+    const pendingSubtasks = document.getElementById('pendingSubtasks');
+
+    // temporary list of subtasks while creating a task
+    let tempSubtasks = [];
 
     function loadTasks(){
       try{
@@ -50,7 +63,12 @@
       list.innerHTML = '';
       tasks.forEach((t, idx) => {
         const li = document.createElement('li');
-        li.className = t.done ? 'completed' : '';
+        li.className = 'task-item ' + (t.done ? 'completed' : '');
+        // add subject color class
+        li.classList.add('subject-' + (t.subject || 'sonstiges'));
+
+        const left = document.createElement('div');
+        left.className = 'left-col';
 
         const chk = document.createElement('input');
         chk.type = 'checkbox';
@@ -61,14 +79,62 @@
           render();
         });
 
-        const span = document.createElement('span');
-        span.className = 'text';
-        span.textContent = t.text;
+        left.appendChild(chk);
 
-        const time = document.createElement('div');
-        time.className = 'meta';
-        time.textContent = new Date(t.createdAt).toLocaleString();
+        const content = document.createElement('div');
+        content.className = 'content-col';
 
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = t.text;
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const start = t.startDate ? new Date(t.startDate).toLocaleDateString() : '-';
+        const end = t.endDate ? new Date(t.endDate).toLocaleDateString() : '-';
+        meta.textContent = `${t.subject || 'Sonstiges'} • ${start} → ${end}`;
+
+        content.appendChild(title);
+        content.appendChild(meta);
+
+        // subtasks
+        if(Array.isArray(t.subtasks) && t.subtasks.length){
+          const subUl = document.createElement('ul');
+          subUl.className = 'subtasks';
+          t.subtasks.forEach((s, sidx) => {
+            const sli = document.createElement('li');
+            sli.className = s.done ? 'sub-completed' : '';
+
+            const schild = document.createElement('input');
+            schild.type = 'checkbox';
+            schild.checked = !!s.done;
+            schild.addEventListener('change', () => {
+              t.subtasks[sidx].done = schild.checked;
+              saveTasks(tasks);
+              render();
+            });
+
+            const stext = document.createElement('span');
+            stext.textContent = s.text + (s.startDate || s.endDate ? ` (${s.startDate||'-'}→${s.endDate||'-'})` : '');
+
+            const sdel = document.createElement('button');
+            sdel.textContent = 'Löschen';
+            sdel.addEventListener('click', () => {
+              t.subtasks.splice(sidx,1);
+              saveTasks(tasks);
+              render();
+            });
+
+            sli.appendChild(schild);
+            sli.appendChild(stext);
+            sli.appendChild(sdel);
+            subUl.appendChild(sli);
+          });
+          content.appendChild(subUl);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
         const del = document.createElement('button');
         del.textContent = 'Löschen';
         del.addEventListener('click', () => {
@@ -76,27 +142,71 @@
           saveTasks(tasks);
           render();
         });
+        actions.appendChild(del);
 
-        li.appendChild(chk);
-        li.appendChild(span);
-        li.appendChild(time);
-        li.appendChild(del);
+        li.appendChild(left);
+        li.appendChild(content);
+        li.appendChild(actions);
         list.appendChild(li);
       });
       const remainingCount = tasks.filter(t=>!t.done).length;
       remaining.textContent = remainingCount;
     }
 
-    function addTask(text){
+    function addTask(){
+      const text = input.value;
+      const subject = subjectSelect.value;
+      const startDate = startDateInput.value || null;
+      const endDate = endDateInput.value || null;
       if(!text || !text.trim()) return;
       const tasks = loadTasks();
-      tasks.unshift({ text: text.trim(), done: false, createdAt: Date.now() });
+      const task = {
+        text: text.trim(),
+        subject,
+        startDate,
+        endDate,
+        done: false,
+        createdAt: Date.now(),
+        subtasks: tempSubtasks.slice()
+      };
+      tasks.unshift(task);
       saveTasks(tasks);
+      // reset form
+      input.value = '';
+      startDateInput.value = '';
+      endDateInput.value = '';
+      subjectSelect.value = 'sonstiges';
+      tempSubtasks = [];
+      pendingSubtasks.innerHTML = '';
+      input.focus();
       render();
     }
 
-    addBtn.addEventListener('click', () => { addTask(input.value); input.value=''; input.focus(); });
-    input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ addTask(input.value); input.value=''; } });
+    addBtn.addEventListener('click', () => { addTask(); });
+    input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ addTask(); } });
+
+    addSubBtn.addEventListener('click', () => {
+      const st = subtaskInput.value;
+      const sStart = document.getElementById('subStart').value || null;
+      const sEnd = document.getElementById('subEnd').value || null;
+      if(!st || !st.trim()) return;
+      const sub = { text: st.trim(), done: false, startDate: sStart, endDate: sEnd };
+      tempSubtasks.push(sub);
+      // render pending list
+      const li = document.createElement('li');
+      li.textContent = sub.text + (sub.startDate||sub.endDate ? ` (${sub.startDate||'-'}→${sub.endDate||'-'})` : '');
+      const rem = document.createElement('button');
+      rem.textContent = 'Entfernen';
+      rem.addEventListener('click', () => {
+        const i = Array.from(pendingSubtasks.children).indexOf(li);
+        if(i>-1){ tempSubtasks.splice(i,1); li.remove(); }
+      });
+      li.appendChild(rem);
+      pendingSubtasks.appendChild(li);
+      subtaskInput.value = '';
+      document.getElementById('subStart').value = '';
+      document.getElementById('subEnd').value = '';
+    });
 
     // initial render
     render();
