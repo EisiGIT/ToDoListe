@@ -1,1 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ToDo Liste</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width:700px; margin:40px auto; padding:0 16px; }
+    h1 { text-align:center; }
+    .new-task { display:flex; gap:8px; margin-bottom:16px; }
+    input[type="text"] { flex:1; padding:8px; font-size:16px; }
+    button { padding:8px 12px; font-size:16px; }
+    ul { list-style:none; padding:0; }
+    li { display:flex; align-items:center; gap:8px; padding:8px; border:1px solid #eee; margin-bottom:8px; border-radius:4px; }
+    li.completed span.text { text-decoration:line-through; color:#777; }
+    .text { flex:1; }
+    .meta { font-size:13px; color:#666; }
+    .count { margin-top:12px; color:#333; }
+  </style>
+</head>
+<body>
+  <h1>ToDo Liste</h1>
+  <div class="new-task">
+    <input id="taskInput" type="text" placeholder="Neue Aufgabe eingeben und Enter drücken" aria-label="Neue Aufgabe" />
+    <button id="addBtn">Hinzufügen</button>
+  </div>
+  <ul id="taskList" aria-live="polite"></ul>
+  <div class="count"><span id="remaining">0</span> Aufgaben übrig</div>
+
+  <script>
+    const input = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const list = document.getElementById('taskList');
+    const remaining = document.getElementById('remaining');
+
+    function loadTasks(){
+      try{
+        return JSON.parse(localStorage.getItem('tasks') || '[]');
+      }catch(e){
+        return [];
+      }
+    }
+
+    function saveTasks(tasks){
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function render(){
+      const tasks = loadTasks();
+      list.innerHTML = '';
+      tasks.forEach((t, idx) => {
+        const li = document.createElement('li');
+        li.className = t.done ? 'completed' : '';
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.checked = !!t.done;
+        chk.addEventListener('change', () => {
+          tasks[idx].done = chk.checked;
+          saveTasks(tasks);
+          render();
+        });
+
+        const span = document.createElement('span');
+        span.className = 'text';
+        span.textContent = t.text;
+
+        const time = document.createElement('div');
+        time.className = 'meta';
+        time.textContent = new Date(t.createdAt).toLocaleString();
+
+        const del = document.createElement('button');
+        del.textContent = 'Löschen';
+        del.addEventListener('click', () => {
+          tasks.splice(idx,1);
+          saveTasks(tasks);
+          render();
+        });
+
+        li.appendChild(chk);
+        li.appendChild(span);
+        li.appendChild(time);
+        li.appendChild(del);
+        list.appendChild(li);
+      });
+      const remainingCount = tasks.filter(t=>!t.done).length;
+      remaining.textContent = remainingCount;
+    }
+
+    function addTask(text){
+      if(!text || !text.trim()) return;
+      const tasks = loadTasks();
+      tasks.unshift({ text: text.trim(), done: false, createdAt: Date.now() });
+      saveTasks(tasks);
+      render();
+    }
+
+    addBtn.addEventListener('click', () => { addTask(input.value); input.value=''; input.focus(); });
+    input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ addTask(input.value); input.value=''; } });
+
+    // initial render
+    render();
+  </script>
+</body>
+</html>
 
