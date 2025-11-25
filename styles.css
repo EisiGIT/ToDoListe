@@ -22,16 +22,6 @@ h1{ text-align:center; margin-bottom:18px; }
 .subtasks{ list-style:none; padding-left:0; margin-top:8px; }
 .subtasks li{ display:flex; gap:8px; align-items:center; padding:6px; border-radius:4px; background:#fbfbfb; border:1px solid #f0f0f0; margin-bottom:6px; }
 
-<<<<<<< HEAD
-/* Subject colors are now dynamically applied via JavaScript per task index */
-=======
-/* Subject colors (Unifächer) */
-.task-item.subject-mathe{ border-left:6px solid #2E7D32; }
-.task-item.subject-info{ border-left:6px solid #1976D2; }
-.task-item.subject-physik{ border-left:6px solid #6A1B9A; }
-.task-item.subject-englisch{ border-left:6px solid #FF8F00; }
-.task-item.subject-sonstiges{ border-left:6px solid #9E9E9E; }
-
 /* Buttons */
 button{ background:#1976D2; color:#fff; border:0; border-radius:4px; cursor:pointer; }
 button:hover{ opacity:0.95; }
