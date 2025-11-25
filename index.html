@@ -123,6 +123,12 @@
 
     function render(){
       const tasks = loadTasks();
+      // Sort tasks by endDate (earliest first), undefined dates go to the end
+      tasks.sort((a, b) => {
+        const aDate = a.endDate ? new Date(a.endDate).getTime() : Infinity;
+        const bDate = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+        return aDate - bDate;
+      });
       list.innerHTML = '';
       tasks.forEach((t, idx) => {
         const li = document.createElement('li');
