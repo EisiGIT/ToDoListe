@@ -45,6 +45,22 @@
     // temporary list of subtasks while creating a task
     let tempSubtasks = [];
 
+    // Color palette for tasks
+    const colorPalette = [
+      { bg: '#FFE8E8', border: '#E74C3C' },
+      { bg: '#E8F5FF', border: '#3498DB' },
+      { bg: '#E8FFE8', border: '#27AE60' },
+      { bg: '#FFF4E8', border: '#F39C12' },
+      { bg: '#F4E8FF', border: '#8E44AD' },
+      { bg: '#E8FFFF', border: '#1ABC9C' },
+      { bg: '#FFFFE8', border: '#F1C40F' },
+      { bg: '#FFE8F4', border: '#E91E63' }
+    ];
+
+    function getColorForTask(taskIndex) {
+      return colorPalette[taskIndex % colorPalette.length];
+    }
+
     function loadTasks(){
       try{
         return JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -65,6 +81,10 @@
         li.className = 'task-item ' + (t.done ? 'completed' : '');
         // add subject color class
         li.classList.add('subject-' + (t.subject || 'sonstiges'));
+        // apply dynamic task color
+        const color = getColorForTask(idx);
+        li.style.backgroundColor = color.bg;
+        li.style.borderLeft = '6px solid ' + color.border;
 
         const left = document.createElement('div');
         left.className = 'left-col';
