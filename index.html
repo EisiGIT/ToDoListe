@@ -10,12 +10,6 @@
   <h1>Aufgabenliste Uni</h1>
   <form id="newTaskForm" class="new-task" onsubmit="return false;">
     <input id="taskInput" type="text" placeholder="Neue Aufgabe (Titel)" aria-label="Neue Aufgabe" required />
-    <select id="subjectSelect" aria-label="Unifach">
-      <option value="mathe">Mathe</option>
-      <option value="info">Informatik</option>
-      <option value="physik">Physik</option>
-      <option value="englisch">Englisch</option>
-    </select>
     <input id="startDate" type="date" aria-label="Startdatum" />
     <input id="endDate" type="date" aria-label="Enddatum" />
     <button id="addBtn">Hinzufügen</button>
@@ -32,7 +26,6 @@
 
   <script>
     const input = document.getElementById('taskInput');
-    const subjectSelect = document.getElementById('subjectSelect');
     const addBtn = document.getElementById('addBtn');
     const list = document.getElementById('taskList');
     const remaining = document.getElementById('remaining');
@@ -172,14 +165,12 @@
 
     function addTask(){
       const text = input.value;
-      const subject = subjectSelect.value;
       const startDate = startDateInput.value || null;
       const endDate = endDateInput.value || null;
       if(!text || !text.trim()) return;
       const tasks = loadTasks();
       const task = {
         text: text.trim(),
-        subject,
         startDate,
         endDate,
         done: false,
@@ -192,7 +183,6 @@
       input.value = '';
       startDateInput.value = '';
       endDateInput.value = '';
-      subjectSelect.value = 'mathe';
       tempSubtasks = [];
       pendingSubtasks.innerHTML = '';
       input.focus();
