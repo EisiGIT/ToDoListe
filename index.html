@@ -79,8 +79,6 @@
       tasks.forEach((t, idx) => {
         const li = document.createElement('li');
         li.className = 'task-item ' + (t.done ? 'completed' : '');
-        // add subject color class
-        li.classList.add('subject-' + (t.subject || 'sonstiges'));
         // apply dynamic task color
         const color = getColorForTask(idx);
         li.style.backgroundColor = color.bg;
@@ -111,7 +109,7 @@
         meta.className = 'meta';
         const start = t.startDate ? new Date(t.startDate).toLocaleDateString() : '-';
         const end = t.endDate ? new Date(t.endDate).toLocaleDateString() : '-';
-        meta.textContent = `${t.subject || 'Sonstiges'} • ${start} → ${end}`;
+        meta.textContent = `${t.subject} • ${start} → ${end}`;
 
         content.appendChild(title);
         content.appendChild(meta);
