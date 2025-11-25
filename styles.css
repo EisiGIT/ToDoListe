@@ -18,6 +18,7 @@ h1{ text-align:center; margin-bottom:18px; }
 .task-item .meta{ font-size:13px; color:#666; }
 .task-item .actions{ margin-left:8px; display:flex; gap:6px; }
 .task-item.completed{ opacity:0.7; }
+.task-item.urgent{ border-left:6px solid #E74C3C !important; box-shadow:0 0 0 3px rgba(231, 76, 60, 0.2); }
 
 .subtasks{ list-style:none; padding-left:0; margin-top:8px; }
 .subtasks li{ display:flex; gap:8px; align-items:center; padding:6px; border-radius:4px; background:#fbfbfb; border:1px solid #f0f0f0; margin-bottom:6px; }
